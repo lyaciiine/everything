@@ -637,13 +637,41 @@ export function settingsView({ navigate }) {
   /* ----- Payment instructions ----- */
   const payInstructions = el('textarea.textarea', {
     rows: 3, value: s.paymentInstructions || '',
-    placeholder: 'Account name: Aurora Studio\nIBAN: DE00 0000 0000 0000 0000 00\nBIC: EXAMPLEX',
+    placeholder: 'Mode : CCP / BaridiMob / Edahabia / CIB\nTitulaire : …\nNuméro de compte ou téléphone : …',
   });
+  const paymentPreset = el('select.select', {},
+    el('option', { value: 'ccp' }, 'CCP'),
+    el('option', { value: 'baridimob' }, 'BaridiMob'),
+    el('option', { value: 'edahabia' }, 'Edahabia'),
+    el('option', { value: 'cib' }, 'CIB'),
+    el('option', { value: 'cash' }, 'Cash / espèces'),
+    el('option', { value: 'bank' }, 'Bank transfer / virement'));
+  const paymentPresetText = {
+    ccp: 'Mode de paiement : CCP\nTitulaire : \nN° de compte : \nClé : ',
+    baridimob: 'Mode de paiement : BaridiMob\nNuméro de téléphone : \nTitulaire : ',
+    edahabia: 'Mode de paiement : Edahabia\nInstructions de paiement : ',
+    cib: 'Mode de paiement : CIB\nInstructions de paiement : ',
+    cash: 'Mode de paiement : Espèces\nLieu / modalités : ',
+    bank: 'Mode de paiement : Virement bancaire\nBanque : \nTitulaire : \nNuméro de compte / RIP : ',
+  };
+  const insertPaymentPreset = el('button.btn.btn-ghost', {
+    type: 'button',
+    onclick: () => {
+      const template = paymentPresetText[paymentPreset.value];
+      if (!template) return;
+      payInstructions.value = payInstructions.value.trim()
+        ? payInstructions.value.trim() + '\n\n' + template
+        : template;
+      payInstructions.focus();
+      payInstructions.setSelectionRange(payInstructions.value.length, payInstructions.value.length);
+    },
+  }, 'Insert template');
   const payInstructionsCard = saveCard('Payment instructions', [
     el('p.card-sub', {},
-      'Add instructions for CCP, BaridiMob, Edahabia, CIB, cash, or a bank transfer. This is printed text only: it does not connect to a payment provider or verify a payment. '
+      'Add instructions for CCP, BaridiMob, Edahabia, CIB, cash, or a bank transfer. These templates only add printable text; they do not connect to a payment provider or verify a payment. '
       + 'Printed under its own heading on every invoice that still has a balance due; settled and void invoices never show it. '
       + 'A client can carry their own version, set on their card.'),
+    field('Quick template', el('div.side-actions', {}, selectWrap(paymentPreset), insertPaymentPreset), { group: true }),
     field('Instructions', payInstructions),
   ], () => ({
     paymentInstructions: payInstructions.value.trim(),
