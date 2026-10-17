@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  docTotals, docTaxes, lineTotal, paidTotal, fmtMoney, isRefund, refundableTotal,
+  docTotals, docTaxes, lineTotal, paidTotal, fmtMoney, CURRENCIES, isRefund, refundableTotal,
   formatQty, unitForm, scheduleRows, fxRateFor, paymentFxRate, inBase,
 } from '../src/lib/money.js';
 
@@ -15,6 +15,14 @@ const doc = (over = {}) => ({
   discountValue: 0,
   payments: [],
   ...over,
+});
+
+describe('Algerian dinar', () => {
+  it('offers DZD and formats it using Algerian French conventions with DA', () => {
+    expect(CURRENCIES.some((currency) => currency.code === 'DZD')).toBe(true);
+    expect(fmtMoney(1234.5, 'DZD')).toContain('234,50 DA');
+    expect(fmtMoney(-50, 'DZD')).toContain('DA');
+  });
 });
 
 describe('lineTotal', () => {
