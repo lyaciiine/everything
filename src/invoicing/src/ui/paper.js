@@ -355,7 +355,7 @@ export function statementHTML(client, docs, settings, { today = null } = {}) {
  */
 export function receiptHTML(payment, doc, client, settings) {
   const t = docTotals(doc);
-  const lang = docLang(doc, client);
+  const lang = docLang(doc, client) || settings.defaultLanguage || '';
   const tr = translator(lang);
   const brand = brandColorOf(settings);
   const refund = isRefund(payment);
