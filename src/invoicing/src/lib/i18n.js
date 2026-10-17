@@ -6,9 +6,9 @@
  * The app UI stays English, and everything the user types (item names,
  * notes, payment instructions) prints verbatim.
  *
- * The built-in set sticks to Latin-script languages because the PDF writer
- * folds text to WinAnsi with the base-14 fonts (lib/pdf.js); a language it
- * cannot draw would come out as question marks.
+ * Latin-script documents use the bundled PDF writer. Arabic labels and text
+ * are rendered by the browser's native print pipeline instead, because the
+ * bundled WinAnsi PDF writer cannot shape Arabic correctly.
  *
  * '' (no language anywhere) keeps today's exact behavior: English labels
  * and dates in the browser's own locale. An explicit 'en' also formats
