@@ -130,7 +130,7 @@ const shell = (settings, tr) => ({
 /** An invoice or estimate, exactly as the paper renders it. */
 export function docSpec(doc, client, settings, { today = null, payLink = null } = {}) {
   const t = docTotals(doc);
-  const lang = docLang(doc, client);
+  const lang = docLang(doc, client) || settings.defaultLanguage || '';
   const tr = translator(lang);
   const isInvoice = doc.kind === 'invoice';
   // As the paper does: without a date the stamp is what the document says
@@ -191,6 +191,7 @@ export function docSpec(doc, client, settings, { today = null, payLink = null } 
   return {
     ...shell(settings, tr),
     filename: doc.number,
+    language: lang,
     kind: tr(isInvoice ? 'invoice' : 'estimate'),
     number: doc.number,
     stamp,
@@ -257,6 +258,7 @@ export function receiptSpec(payment, doc, client, settings) {
   return {
     ...shell(settings, tr),
     filename: payment.number || 'receipt',
+    language: lang,
     kind: tr(refund ? 'refundReceipt' : 'receipt'),
     number: payment.number || '',
     party: clientBlock(client, tr(refund ? 'refundedTo' : 'receivedFrom'), tr),
@@ -279,7 +281,7 @@ export function receiptSpec(payment, doc, client, settings) {
 
 /** A statement of account: one client's open invoices on one page. */
 export function statementSpec(client, docs, settings, { today = null } = {}) {
-  const lang = docLang(null, client);
+  const lang = docLang(null, client) || settings.defaultLanguage || '';
   const tr = translator(lang);
   const rows = [...docs].sort((a, b) => (a.issueDate < b.issueDate ? -1 : a.issueDate > b.issueDate ? 1 : 0));
   const due = {};
@@ -307,6 +309,7 @@ export function statementSpec(client, docs, settings, { today = null } = {}) {
   return {
     ...shell(settings, tr),
     filename: `statement-${name}`,
+    language: lang,
     kind: tr('statement'),
     number: '',
     subtitle: today ? `${tr('asOf')} ${pdfDate(today, lang)}` : '',
