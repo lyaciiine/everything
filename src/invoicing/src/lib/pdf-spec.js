@@ -88,7 +88,15 @@ function bizBlock(settings, tr) {
   const b = settings?.business || {};
   return {
     name: b.name || 'Your business',
-    lines: lines(b.address, b.email, b.phone, b.taxId ? `${tr('taxId')}: ${b.taxId}` : ''),
+    lines: lines(
+      b.address,
+      b.email,
+      b.phone,
+      b.taxId ? `${tr('taxId')}: ${b.taxId}` : '',
+      b.nif ? `NIF: ${b.nif}` : '',
+      b.nis ? `NIS: ${b.nis}` : '',
+      b.rc ? `RC: ${b.rc}` : '',
+    ),
   };
 }
 
