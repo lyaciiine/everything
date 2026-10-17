@@ -6,6 +6,7 @@ import { field, selectWrap, download, refocus, taxNoteControl } from '../ui/bits
 import { store } from '../lib/store.js';
 import { clamp } from '../lib/util.js';
 import { CURRENCIES } from '../lib/money.js';
+import { LANGS } from '../lib/i18n.js';
 import { MAX_TERM_DAYS, settingsTaxes, termDays } from '../lib/doc.js';
 import { LOGO_ACCEPT, isLogoDataUri, logoOf, normalizeHexColor, processLogoFile } from '../lib/brand.js';
 import {
@@ -240,6 +241,11 @@ export function settingsView({ navigate }) {
       value: c.code, selected: c.code === s.baseCurrency,
     }, `${c.code} · ${c.name}`)));
 
+  const defaultLanguage = el('select.select', {},
+    LANGS.map((l) => el('option', {
+      value: l.code, selected: l.code === (s.defaultLanguage || 'fr'),
+    }, l.label)));
+
   /* Named tax rates: one row per tax every new document starts with, plus
      the treatments a line item can pick from. GST + PST live here as two
      rows; a reduced VAT rate as another. */
@@ -322,6 +328,7 @@ export function settingsView({ navigate }) {
     el('p.card-sub', {}, 'Starting points for new documents; each one can still be adjusted.'),
     el('div.field-grid', {},
       field('Currency', selectWrap(currency)),
+      field('Default document language', selectWrap(defaultLanguage)),
       field('Reporting currency', selectWrap(baseCurrency), { hint: 'for consolidated totals' }),
       field('Payment terms', terms, { hint: 'days until due' }),
       field('Estimate validity', validDays, { hint: 'days' }),
@@ -402,13 +409,14 @@ export function settingsView({ navigate }) {
     return {
       taxNote: note.value,
       currency: currency.value,
+      defaultLanguage: LANGS.some((l) => l.code === defaultLanguage.value) ? defaultLanguage.value : 'fr',
       baseCurrency: baseCurrency.value,
       taxes,
       // The single rate/label pair stays in step with the list's first entry:
       // it is what per-client overrides, old documents' unnamed rows, and any
       // pre-list reader still key off.
       taxRate: taxes[0]?.rate ?? 0,
-      taxLabel: taxes[0]?.label || 'Tax',
+      taxLabel: taxes[0]?.label || 'TVA',
       taxInclusive: taxInclusiveBox.checked,
       paymentTermsDays: termDays(terms.value, 0),
       quoteValidDays: termDays(validDays.value, 0),
