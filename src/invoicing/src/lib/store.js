@@ -96,9 +96,12 @@ export function ownsAttachmentPath(docId, path) {
 
 export const DEFAULT_SETTINGS = {
   // `logo` is an image data URI so documents (and share pages) embed it.
-  business: { name: '', email: '', phone: '', address: '', taxId: '', logo: '' },
+  business: { name: '', email: '', phone: '', address: '', taxId: '', nif: '', nis: '', rc: '', logo: '' },
   brandColor: '',       // '' keeps the paper in plain ink
-  currency: 'USD',
+  // Algeria-first for new accounts; existing saved settings keep their currency.
+  currency: 'DZD',
+  // New documents use French by default; each document can override this.
+  defaultLanguage: 'fr',
   // The currency reports consolidate into. '' follows `currency`; a document
   // billed in anything else carries the rate it was worth on the day.
   baseCurrency: '',
@@ -107,7 +110,7 @@ export const DEFAULT_SETTINGS = {
   // per-client overrides and documents saved before the list existed.
   taxes: [],
   taxRate: 0,
-  taxLabel: 'Tax',
+  taxLabel: 'TVA',
   taxInclusive: false, // new documents start with prices carrying the tax
   paymentTermsDays: 14,
   quoteValidDays: 30,

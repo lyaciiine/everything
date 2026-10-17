@@ -24,6 +24,17 @@ const invoice = (over = {}) => ({
 
 /* The client block, as the paper the client actually sees renders it.
    Must agree with pdf-spec's clientBlock: same name fallback, no repeats. */
+describe('Algerian business identifiers in HTML papers', () => {
+  it('prints optional NIF, NIS and RC fields in the business header', () => {
+    const html = paperHTML(invoice(), null, {
+      business: { name: 'Entreprise Exemple', nif: '123456789012345', nis: '123456789012345', rc: 'RC-EXAMPLE-001' },
+    }, {});
+    expect(html).toContain('NIF: 123456789012345');
+    expect(html).toContain('NIS: 123456789012345');
+    expect(html).toContain('RC: RC-EXAMPLE-001');
+  });
+});
+
 describe('paperHTML client block', () => {
   it('shows name and company when they differ', () => {
     const html = paperHTML(invoice(), { id: 'c1', name: 'Maya Chen', company: 'Northwind Labs' }, settings, {});
@@ -78,6 +89,18 @@ describe('paperHTML stamp without a date', () => {
     const quote = invoice({ kind: 'quote', validUntil: '2020-01-01' });
     expect(paperHTML({ ...quote, status: 'declined' }, null, settings, {})).toContain('>Declined<');
     expect(paperHTML(quote, null, settings, {})).not.toContain('paper-stamp');
+  });
+});
+
+describe('Algerian business identifiers in PDF specs', () => {
+  it('includes NIF, NIS and RC in the business block when provided', () => {
+    const spec = docSpec(invoice(), null, {
+      business: { name: 'Entreprise Exemple', nif: '123456789012345', nis: '123456789012345', rc: 'RC-EXAMPLE-001' },
+      taxLabel: 'TVA',
+    });
+    expect(spec.biz.lines).toContain('NIF: 123456789012345');
+    expect(spec.biz.lines).toContain('NIS: 123456789012345');
+    expect(spec.biz.lines).toContain('RC: RC-EXAMPLE-001');
   });
 });
 
@@ -452,5 +475,22 @@ describe('the scrollable table', () => {
   it('names the statement’s table for what it lists', () => {
     const html = statementHTML({ id: 'c1', name: 'Maya' }, [], settings, { today: '2026-08-04' });
     expect(html).toContain('<div class="paper-table-scroll" tabindex="0" role="region" aria-label="Open invoices">');
+  });
+});
+
+
+describe('Arabic paper rendering', () => {
+  it('renders Arabic labels in a right-to-left paper fragment', () => {
+    const doc = invoice({ language: 'ar' });
+    const html = paperHTML(doc, null, settings, {});
+    expect(html).toContain('dir="rtl" lang="ar"');
+    expect(html).toContain('فاتورة');
+    expect(html).toContain('الإجمالي');
+    expect(docSpec(doc, null, settings, {}).language).toBe('ar');
+  });
+
+  it('uses the account language for new paper when the document has no override', () => {
+    const html = paperHTML(invoice(), null, { ...settings, defaultLanguage: 'fr' }, {});
+    expect(html).toContain('Facture');
   });
 });

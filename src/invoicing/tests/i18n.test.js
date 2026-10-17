@@ -15,15 +15,22 @@ describe('the strings table', () => {
     }
   });
 
-  it('stays within what the PDF fonts can draw', () => {
-    // The writer folds text to WinAnsi; anything outside Latin-1 plus the
-    // few punctuation marks it maps would print as '?'.
+  it('keeps Latin-script labels within the bundled PDF font encoding', () => {
+    // Arabic is rendered by the browser print path because the bundled PDF
+    // writer cannot shape Arabic text. Other document languages use WinAnsi.
     const drawable = /^[\0-ÿ–—‘’“”…•€™]*$/;
     for (const [code, table] of Object.entries(STRINGS)) {
+      if (code === 'ar') continue;
       for (const [key, value] of Object.entries(table)) {
         expect(drawable.test(value), `${code}.${key}: ${value}`).toBe(true);
       }
     }
+  });
+
+  it('includes Arabic labels for browser-rendered paper', () => {
+    expect(LANGS.some((l) => l.code === 'ar')).toBe(true);
+    expect(STRINGS.ar.invoice).toBe('فاتورة');
+    expect(STRINGS.ar.total).toBe('الإجمالي');
   });
 });
 

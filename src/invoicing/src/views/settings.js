@@ -6,6 +6,7 @@ import { field, selectWrap, download, refocus, taxNoteControl } from '../ui/bits
 import { store } from '../lib/store.js';
 import { clamp } from '../lib/util.js';
 import { CURRENCIES } from '../lib/money.js';
+import { LANGS } from '../lib/i18n.js';
 import { MAX_TERM_DAYS, settingsTaxes, termDays } from '../lib/doc.js';
 import { LOGO_ACCEPT, isLogoDataUri, logoOf, normalizeHexColor, processLogoFile } from '../lib/brand.js';
 import {
@@ -84,6 +85,9 @@ export function settingsView({ navigate }) {
   const bizPhone = el('input.input', { type: 'tel', value: s.business.phone, autocomplete: 'tel' });
   const bizAddress = el('textarea.textarea', { rows: 2, value: s.business.address });
   const bizTaxId = el('input.input', { value: s.business.taxId });
+  const bizNif = el('input.input', { value: s.business.nif || '', inputmode: 'text', autocomplete: 'off' });
+  const bizNis = el('input.input', { value: s.business.nis || '', inputmode: 'text', autocomplete: 'off' });
+  const bizRc = el('input.input', { value: s.business.rc || '', inputmode: 'text', autocomplete: 'off' });
 
   /* Logo and tint. The logo is persisted the moment it is chosen (an upload
      that needs a second Save is an upload people lose), while the rest of
@@ -190,7 +194,11 @@ export function settingsView({ navigate }) {
       field('Email', bizEmail, { hint: '(optional)' }),
       field('Phone', bizPhone, { hint: '(optional)' })),
     field('Address', bizAddress, { hint: '(optional)' }),
-    field('Tax ID', bizTaxId, { hint: '(VAT number, EIN…)' }),
+    field('Tax ID', bizTaxId, { hint: '(optional; for other tax systems)' }),
+    el('div.field-grid', {},
+      field('NIF', bizNif, { hint: '(optional)' }),
+      field('NIS', bizNis, { hint: '(optional)' }),
+      field('Registre de commerce (RC)', bizRc, { hint: '(optional)' })),
     // Labelled as a group, not with a for-association: the only labelable
     // control in this row is the file input, which is hidden — so the caption
     // named nothing that is actually on screen or in the accessibility tree,
@@ -208,6 +216,9 @@ export function settingsView({ navigate }) {
       phone: bizPhone.value.trim(),
       address: bizAddress.value.trim(),
       taxId: bizTaxId.value.trim(),
+      nif: bizNif.value.trim(),
+      nis: bizNis.value.trim(),
+      rc: bizRc.value.trim(),
       // The logo persists the moment it is picked, not on Save, so Save
       // takes it from the store rather than from this card's own copy: that
       // copy was assigned only after the upload's write settled, and a Save
@@ -230,6 +241,11 @@ export function settingsView({ navigate }) {
       value: c.code, selected: c.code === s.baseCurrency,
     }, `${c.code} · ${c.name}`)));
 
+  const defaultLanguage = el('select.select', {},
+    LANGS.map((l) => el('option', {
+      value: l.code, selected: l.code === (s.defaultLanguage || 'fr'),
+    }, l.label)));
+
   /* Named tax rates: one row per tax every new document starts with, plus
      the treatments a line item can pick from. GST + PST live here as two
      rows; a reduced VAT rate as another. */
@@ -240,7 +256,7 @@ export function settingsView({ navigate }) {
     taxRows.forEach((tx, i) => {
       taxesWrap.append(el('div.tax-row', {},
         el('input.input', {
-          value: tx.label, placeholder: 'VAT, GST…',
+          value: tx.label, placeholder: 'TVA, VAT, GST…',
           'aria-label': `Tax ${i + 1} name`,
           oninput: (e) => { tx.label = e.target.value; },
         }),
@@ -312,6 +328,7 @@ export function settingsView({ navigate }) {
     el('p.card-sub', {}, 'Starting points for new documents; each one can still be adjusted.'),
     el('div.field-grid', {},
       field('Currency', selectWrap(currency)),
+      field('Default document language', selectWrap(defaultLanguage)),
       field('Reporting currency', selectWrap(baseCurrency), { hint: 'for consolidated totals' }),
       field('Payment terms', terms, { hint: 'days until due' }),
       field('Estimate validity', validDays, { hint: 'days' }),
@@ -392,13 +409,14 @@ export function settingsView({ navigate }) {
     return {
       taxNote: note.value,
       currency: currency.value,
+      defaultLanguage: LANGS.some((l) => l.code === defaultLanguage.value) ? defaultLanguage.value : 'fr',
       baseCurrency: baseCurrency.value,
       taxes,
       // The single rate/label pair stays in step with the list's first entry:
       // it is what per-client overrides, old documents' unnamed rows, and any
       // pre-list reader still key off.
       taxRate: taxes[0]?.rate ?? 0,
-      taxLabel: taxes[0]?.label || 'Tax',
+      taxLabel: taxes[0]?.label || 'TVA',
       taxInclusive: taxInclusiveBox.checked,
       paymentTermsDays: termDays(terms.value, 0),
       quoteValidDays: termDays(validDays.value, 0),
@@ -627,13 +645,41 @@ export function settingsView({ navigate }) {
   /* ----- Payment instructions ----- */
   const payInstructions = el('textarea.textarea', {
     rows: 3, value: s.paymentInstructions || '',
-    placeholder: 'Account name: Aurora Studio\nIBAN: DE00 0000 0000 0000 0000 00\nBIC: EXAMPLEX',
+    placeholder: 'Mode : CCP / BaridiMob / Edahabia / CIB\nTitulaire : …\nNuméro de compte ou téléphone : …',
   });
+  const paymentPreset = el('select.select', {},
+    el('option', { value: 'ccp' }, 'CCP'),
+    el('option', { value: 'baridimob' }, 'BaridiMob'),
+    el('option', { value: 'edahabia' }, 'Edahabia'),
+    el('option', { value: 'cib' }, 'CIB'),
+    el('option', { value: 'cash' }, 'Cash / espèces'),
+    el('option', { value: 'bank' }, 'Bank transfer / virement'));
+  const paymentPresetText = {
+    ccp: 'Mode de paiement : CCP\nTitulaire : \nN° de compte : \nClé : ',
+    baridimob: 'Mode de paiement : BaridiMob\nNuméro de téléphone : \nTitulaire : ',
+    edahabia: 'Mode de paiement : Edahabia\nInstructions de paiement : ',
+    cib: 'Mode de paiement : CIB\nInstructions de paiement : ',
+    cash: 'Mode de paiement : Espèces\nLieu / modalités : ',
+    bank: 'Mode de paiement : Virement bancaire\nBanque : \nTitulaire : \nNuméro de compte / RIP : ',
+  };
+  const insertPaymentPreset = el('button.btn.btn-ghost', {
+    type: 'button',
+    onclick: () => {
+      const template = paymentPresetText[paymentPreset.value];
+      if (!template) return;
+      payInstructions.value = payInstructions.value.trim()
+        ? payInstructions.value.trim() + '\n\n' + template
+        : template;
+      payInstructions.focus();
+      payInstructions.setSelectionRange(payInstructions.value.length, payInstructions.value.length);
+    },
+  }, 'Insert template');
   const payInstructionsCard = saveCard('Payment instructions', [
     el('p.card-sub', {},
-      'How clients pay you by bank transfer: account name, IBAN, sort code, routing number, whatever they need. '
+      'Add instructions for CCP, BaridiMob, Edahabia, CIB, cash, or a bank transfer. These templates only add printable text; they do not connect to a payment provider or verify a payment. '
       + 'Printed under its own heading on every invoice that still has a balance due; settled and void invoices never show it. '
       + 'A client can carry their own version, set on their card.'),
+    field('Quick template', el('div.side-actions', {}, selectWrap(paymentPreset), insertPaymentPreset), { group: true }),
     field('Instructions', payInstructions),
   ], () => ({
     paymentInstructions: payInstructions.value.trim(),

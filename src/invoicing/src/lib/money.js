@@ -1,6 +1,7 @@
 import { round2 } from './util.js';
 
 export const CURRENCIES = [
+  { code: 'DZD', name: 'Algerian Dinar (DA / دج)' },
   { code: 'USD', name: 'US Dollar' },
   { code: 'EUR', name: 'Euro' },
   { code: 'GBP', name: 'British Pound' },
@@ -26,6 +27,22 @@ export const CURRENCIES = [
 const fmtCache = new Map();
 
 export function fmtMoney(amount, currency = 'USD') {
+  // Use an Algerian French number format for DZD so the local currency is
+  // consistently shown as DA rather than a locale-dependent "DZD" code.
+  // Two decimals are retained for calculations and accounting precision.
+  if (currency === 'DZD') {
+    let fmt = fmtCache.get('DZD-fr-DZ');
+    if (!fmt) {
+      fmt = new Intl.NumberFormat('fr-DZ', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        numberingSystem: 'latn',
+      });
+      fmtCache.set('DZD-fr-DZ', fmt);
+    }
+    return `${fmt.format(Number(amount) || 0)} DA`;
+  }
+
   let fmt = fmtCache.get(currency);
   if (!fmt) {
     try {

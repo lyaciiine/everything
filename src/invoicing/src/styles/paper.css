@@ -282,3 +282,19 @@
 .paper-inst-state {
   color: #6d7078;   /* 4.95:1, like .paper-label */
 }
+
+
+/* Arabic paper uses browser-native shaping and direction, including when printed. */
+.paper-rtl {
+  direction: rtl;
+  text-align: right;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.paper-rtl .paper-dates { text-align: left; }
+.paper-rtl .paper-table th { text-align: right; }
+.paper-rtl .num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+}
+.paper-rtl .paper-table td.num { text-align: left; }
