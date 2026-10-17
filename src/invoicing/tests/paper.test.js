@@ -24,6 +24,17 @@ const invoice = (over = {}) => ({
 
 /* The client block, as the paper the client actually sees renders it.
    Must agree with pdf-spec's clientBlock: same name fallback, no repeats. */
+describe('Algerian business identifiers in HTML papers', () => {
+  it('prints optional NIF, NIS and RC fields in the business header', () => {
+    const html = paperHTML(invoice(), null, {
+      business: { name: 'Entreprise Exemple', nif: '123456789012345', nis: '123456789012345', rc: 'RC-EXAMPLE-001' },
+    }, {});
+    expect(html).toContain('NIF: 123456789012345');
+    expect(html).toContain('NIS: 123456789012345');
+    expect(html).toContain('RC: RC-EXAMPLE-001');
+  });
+});
+
 describe('paperHTML client block', () => {
   it('shows name and company when they differ', () => {
     const html = paperHTML(invoice(), { id: 'c1', name: 'Maya Chen', company: 'Northwind Labs' }, settings, {});
