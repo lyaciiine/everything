@@ -100,6 +100,8 @@ export const DEFAULT_SETTINGS = {
   brandColor: '',       // '' keeps the paper in plain ink
   // Algeria-first for new accounts; existing saved settings keep their currency.
   currency: 'DZD',
+  // New documents use French by default; each document can override this.
+  defaultLanguage: 'fr',
   // The currency reports consolidate into. '' follows `currency`; a document
   // billed in anything else carries the rate it was worth on the day.
   baseCurrency: '',
