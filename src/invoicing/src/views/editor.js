@@ -117,7 +117,7 @@ export function editorView({ navigate, params }) {
     // 150, and the pin only fires on a change event an untouched field
     // never gets — the preview would compute 150% while Save stored 100.
     taxes: docTaxes(source).map((t) => ({
-      label: t.label || s.taxLabel || 'Tax',
+      label: t.label || s.taxLabel || 'TVA',
       rate: clamp(Number(t.rate) || 0, 0, 100),
     })),
     // The discount gets the same load-time pin, against the range its own
@@ -147,7 +147,7 @@ export function editorView({ navigate, params }) {
     // labels falling back, rates pinned to what Save would store.
     taxes: (copyFrom
       ? docTaxes(copyFrom).map((t) => ({
-        label: t.label || s.taxLabel || 'Tax',
+        label: t.label || s.taxLabel || 'TVA',
         rate: clamp(Number(t.rate) || 0, 0, 100),
       }))
       : defaultTaxes(s, isNew ? store.client(params.client) : null).map((t) => ({ ...t }))),
@@ -177,7 +177,7 @@ export function editorView({ navigate, params }) {
         // The reference travels like store.duplicateDoc carries it: the PO
         // usually belongs to the engagement the copy continues.
         reference: copyFrom?.reference || '',
-        language: copyFrom?.language || '',
+        language: copyFrom?.language || s.defaultLanguage || 'fr',
         taxNote: copyFrom?.taxNote || '',
         ...(copyFrom && Number(copyFrom.fxRate) > 0 ? { fxRate: Number(copyFrom.fxRate) } : {}),
         issueDate: today,
