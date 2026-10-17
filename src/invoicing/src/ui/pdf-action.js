@@ -29,7 +29,17 @@ export async function savePdf(build) {
   const pending = toast('Building the PDF…', { icon: 'download', duration: 15000 });
   try {
     const mods = await load();
-    const name = await mods.downloadPdf(build(mods));
+    const spec = build(mods);
+    // The bundled PDF writer uses WinAnsi fonts and cannot shape Arabic.
+    // Browser printing can shape Arabic with system fonts, so preserve the
+    // actual text and ask the browser to Save as PDF rather than corrupting it.
+    if (spec?.language === 'ar') {
+      pending.dismiss();
+      toast('Arabic paper: choose “Save as PDF” in the print dialog', { icon: 'printer', duration: 8000 });
+      window.print();
+      return null;
+    }
+    const name = await mods.downloadPdf(spec);
     pending.dismiss();
     toast(`${name} saved`, { icon: 'circleCheck' });
     return name;
