@@ -27,6 +27,13 @@ describe('the strings table', () => {
   });
 });
 
+  it('includes Arabic labels for browser-rendered paper', () => {
+    expect(LANGS.some((l) => l.code === 'ar')).toBe(true);
+    expect(STRINGS.ar.invoice).toBe('فاتورة');
+    expect(STRINGS.ar.total).toBe('الإجمالي');
+  });
+});
+
 describe('docLang', () => {
   it('prefers the document, then the client, then none', () => {
     expect(docLang({ language: 'de' }, { language: 'fr' })).toBe('de');
