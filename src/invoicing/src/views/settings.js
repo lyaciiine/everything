@@ -84,6 +84,9 @@ export function settingsView({ navigate }) {
   const bizPhone = el('input.input', { type: 'tel', value: s.business.phone, autocomplete: 'tel' });
   const bizAddress = el('textarea.textarea', { rows: 2, value: s.business.address });
   const bizTaxId = el('input.input', { value: s.business.taxId });
+  const bizNif = el('input.input', { value: s.business.nif || '', inputmode: 'text', autocomplete: 'off' });
+  const bizNis = el('input.input', { value: s.business.nis || '', inputmode: 'text', autocomplete: 'off' });
+  const bizRc = el('input.input', { value: s.business.rc || '', inputmode: 'text', autocomplete: 'off' });
 
   /* Logo and tint. The logo is persisted the moment it is chosen (an upload
      that needs a second Save is an upload people lose), while the rest of
@@ -190,7 +193,11 @@ export function settingsView({ navigate }) {
       field('Email', bizEmail, { hint: '(optional)' }),
       field('Phone', bizPhone, { hint: '(optional)' })),
     field('Address', bizAddress, { hint: '(optional)' }),
-    field('Tax ID', bizTaxId, { hint: '(VAT number, EIN…)' }),
+    field('Tax ID', bizTaxId, { hint: '(optional; for other tax systems)' }),
+    el('div.field-grid', {},
+      field('NIF', bizNif, { hint: '(optional)' }),
+      field('NIS', bizNis, { hint: '(optional)' }),
+      field('Registre de commerce (RC)', bizRc, { hint: '(optional)' })),
     // Labelled as a group, not with a for-association: the only labelable
     // control in this row is the file input, which is hidden — so the caption
     // named nothing that is actually on screen or in the accessibility tree,
@@ -208,6 +215,9 @@ export function settingsView({ navigate }) {
       phone: bizPhone.value.trim(),
       address: bizAddress.value.trim(),
       taxId: bizTaxId.value.trim(),
+      nif: bizNif.value.trim(),
+      nis: bizNis.value.trim(),
+      rc: bizRc.value.trim(),
       // The logo persists the moment it is picked, not on Save, so Save
       // takes it from the store rather than from this card's own copy: that
       // copy was assigned only after the upload's write settled, and a Save
@@ -240,7 +250,7 @@ export function settingsView({ navigate }) {
     taxRows.forEach((tx, i) => {
       taxesWrap.append(el('div.tax-row', {},
         el('input.input', {
-          value: tx.label, placeholder: 'VAT, GST…',
+          value: tx.label, placeholder: 'TVA, VAT, GST…',
           'aria-label': `Tax ${i + 1} name`,
           oninput: (e) => { tx.label = e.target.value; },
         }),
@@ -631,7 +641,7 @@ export function settingsView({ navigate }) {
   });
   const payInstructionsCard = saveCard('Payment instructions', [
     el('p.card-sub', {},
-      'How clients pay you by bank transfer: account name, IBAN, sort code, routing number, whatever they need. '
+      'Add instructions for CCP, BaridiMob, Edahabia, CIB, cash, or a bank transfer. This is printed text only: it does not connect to a payment provider or verify a payment. '
       + 'Printed under its own heading on every invoice that still has a balance due; settled and void invoices never show it. '
       + 'A client can carry their own version, set on their card.'),
     field('Instructions', payInstructions),
