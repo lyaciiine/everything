@@ -81,6 +81,18 @@ describe('paperHTML stamp without a date', () => {
   });
 });
 
+describe('Algerian business identifiers in PDF specs', () => {
+  it('includes NIF, NIS and RC in the business block when provided', () => {
+    const spec = docSpec(invoice(), null, {
+      business: { name: 'Entreprise Exemple', nif: '123456789012345', nis: '123456789012345', rc: 'RC-EXAMPLE-001' },
+      taxLabel: 'TVA',
+    });
+    expect(spec.biz.lines).toContain('NIF: 123456789012345');
+    expect(spec.biz.lines).toContain('NIS: 123456789012345');
+    expect(spec.biz.lines).toContain('RC: RC-EXAMPLE-001');
+  });
+});
+
 describe('paperHTML document language', () => {
   it("renders the fixed labels in the client's language", () => {
     const html = paperHTML(invoice(), { id: 'c1', name: 'Jonas Weber', language: 'de' }, settings, {});
