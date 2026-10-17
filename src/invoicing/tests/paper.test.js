@@ -477,3 +477,20 @@ describe('the scrollable table', () => {
     expect(html).toContain('<div class="paper-table-scroll" tabindex="0" role="region" aria-label="Open invoices">');
   });
 });
+
+
+describe('Arabic paper rendering', () => {
+  it('renders Arabic labels in a right-to-left paper fragment', () => {
+    const doc = invoice({ language: 'ar' });
+    const html = paperHTML(doc, null, settings, {});
+    expect(html).toContain('dir="rtl" lang="ar"');
+    expect(html).toContain('فاتورة');
+    expect(html).toContain('الإجمالي');
+    expect(docSpec(doc, null, settings, {}).language).toBe('ar');
+  });
+
+  it('uses the account language for new paper when the document has no override', () => {
+    const html = paperHTML(invoice(), null, { ...settings, defaultLanguage: 'fr' }, {});
+    expect(html).toContain('Facture');
+  });
+});
