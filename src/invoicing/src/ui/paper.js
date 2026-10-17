@@ -90,7 +90,7 @@ function clientBlock(client, t) {
  */
 export function paperHTML(doc, client, settings, { payLink = null, today = null } = {}) {
   const t = docTotals(doc);
-  const lang = docLang(doc, client);
+  const lang = docLang(doc, client) || settings.defaultLanguage || '';
   const tr = translator(lang);
   const brand = brandColorOf(settings);
   const isInvoice = doc.kind === 'invoice';
@@ -178,7 +178,7 @@ export function paperHTML(doc, client, settings, { payLink = null, today = null 
   }).join('')}
       </div>` : '';
 
-  return `
+  return `${lang === 'ar' ? '<div class="paper-rtl" dir="rtl" lang="ar">' : ''}
   <div class="paper-head">
     ${bizBlock(settings, tr)}
     <div class="paper-id">
@@ -234,7 +234,7 @@ export function paperHTML(doc, client, settings, { payLink = null, today = null 
         <a class="paper-paylink" href="${esc(payLink)}" rel="noopener"${tint('color', brand)}>${esc(payLink)}</a>` : ''}
     </div>
     <div class="paper-totals">${totals}${schedule}</div>
-  </div>`;
+  </div>${lang === 'ar' ? '</div>' : ''}`;
 }
 
 /**
@@ -246,7 +246,7 @@ export function paperHTML(doc, client, settings, { payLink = null, today = null 
  * client billed in two currencies gets a total line for each.
  */
 export function statementHTML(client, docs, settings, { today = null } = {}) {
-  const lang = docLang(null, client);
+  const lang = docLang(null, client) || settings.defaultLanguage || '';
   const tr = translator(lang);
   const brand = brandColorOf(settings);
   const asOf = today || '';
@@ -304,7 +304,7 @@ export function statementHTML(client, docs, settings, { today = null } = {}) {
       <span class="num">${fmtMoney(amount, currency)}</span>
     </div>`).join('');
 
-  return `
+  return `${lang === 'ar' ? '<div class="paper-rtl" dir="rtl" lang="ar">' : ''}
   <div class="paper-head">
     ${bizBlock(settings, tr)}
     <div class="paper-id">
@@ -345,7 +345,7 @@ export function statementHTML(client, docs, settings, { today = null } = {}) {
           <span class="num">${fmtMoney(amount, currency)}</span>
         </div>`).join('')}
       </div>` : ''}</div>
-  </div>`;
+  </div>${lang === 'ar' ? '</div>' : ''}`;
 }
 
 /**
@@ -359,7 +359,7 @@ export function receiptHTML(payment, doc, client, settings) {
   const tr = translator(lang);
   const brand = brandColorOf(settings);
   const refund = isRefund(payment);
-  return `
+  return `${lang === 'ar' ? '<div class="paper-rtl" dir="rtl" lang="ar">' : ''}
   <div class="paper-head">
     ${bizBlock(settings, tr)}
     <div class="paper-id">
@@ -389,5 +389,5 @@ export function receiptHTML(payment, doc, client, settings) {
     <div class="paper-trow"><span>${esc(tr('invoiceTotal'))}</span><span class="num">${fmtMoney(t.total, doc.currency)}</span></div>
     <div class="paper-trow"><span>${esc(tr('paidToDate'))}</span><span class="num">${fmtMoney(t.paid, doc.currency)}</span></div>
     <div class="paper-trow strong"${tint('border-top-color', brand)}><span>${esc(tr('balance'))}</span><span class="num">${fmtMoney(t.balance, doc.currency)}</span></div>
-  </div>`;
+  </div>${lang === 'ar' ? '</div>' : ''}`;
 }
