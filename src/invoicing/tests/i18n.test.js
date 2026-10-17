@@ -18,7 +18,7 @@ describe('the strings table', () => {
   it('keeps Latin-script labels within the bundled PDF font encoding', () => {
     // Arabic is rendered by the browser print path because the bundled PDF
     // writer cannot shape Arabic text. Other document languages use WinAnsi.
-    const drawable = /^[\\0-ÿ–—‘’“”…•€™]*$/;
+    const drawable = /^[\0-ÿ–—‘’“”…•€™]*$/;
     for (const [code, table] of Object.entries(STRINGS)) {
       if (code === 'ar') continue;
       for (const [key, value] of Object.entries(table)) {
