@@ -51,8 +51,13 @@ const tint = (prop, brand) => (brand ? ` style="${prop}:${brand}"` : '');
 function bizBlock(settings, t) {
   const b = settings.business || {};
   const logo = logoOf(settings);
-  const meta = [b.address, b.email, b.phone, b.taxId ? `${t('taxId')}: ${b.taxId}` : '']
-    .filter(Boolean).map(multiline).join('<br>');
+  const meta = [
+    b.address, b.email, b.phone,
+    b.taxId ? `${t('taxId')}: ${b.taxId}` : '',
+    b.nif ? `NIF: ${b.nif}` : '',
+    b.nis ? `NIS: ${b.nis}` : '',
+    b.rc ? `RC: ${b.rc}` : '',
+  ].filter(Boolean).map(multiline).join('<br>');
   return `
     <div class="paper-biz">
       ${logo ? `<img class="paper-logo" src="${esc(logo)}" alt="">` : ''}
